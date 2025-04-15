@@ -19,34 +19,40 @@ function updateCredits() {
  * Handles the purchase of lottery boards and updates the UI.
  */
 function purchaseBoards() {
+    // Get user input for number of boards
     const boardCountInput = document.getElementById("boardCount");
     const boardCount = parseInt(boardCountInput.value);
 
+    // Validation checks
     if (isNaN(boardCount) || boardCount < 1 || boardCount > 10) {
         alert("Please enter a valid number between 1 and 10.");
         return;
     }
 
+    // Calculate cost and check funds
     const cost = boardCount * 25;
-
     if (credits < cost) {
         alert("Not enough credits!");
         return;
     }
 
+    // Deduct credits and update display
     credits -= cost;
     updateCredits();
 
+    // Clear previous boards and create new ones
     const container = document.getElementById("boardsContainer");
     container.innerHTML = ""; // Clear previous boards
     boards = [];
 
+    // Create new boards
     for (let i = 0; i < boardCount; i++) {
         const board = { id: i, numbers: [], finalized: false };
         boards.push(board);
         container.appendChild(createBoardElement(i));
     }
 
+    // Disable draw button until all boards finalized
     document.getElementById("startDrawBtn").disabled = true;
 }
 
@@ -56,13 +62,14 @@ function purchaseBoards() {
  * @returns {HTMLDivElement} - The board DOM element.
  */
 function createBoardElement(boardId) {
+    // Create container div
     const boardDiv = document.createElement("div");
     boardDiv.classList.add("board");
     boardDiv.id = `board-${boardId}`;
 
+    // Create 20 number buttons (1-20)
     const numberGrid = document.createElement("div");
     numberGrid.classList.add("number-grid");
-
     for (let num = 1; num <= 20; num++) {
         const numBtn = document.createElement("button");
         numBtn.innerText = num;
@@ -70,6 +77,7 @@ function createBoardElement(boardId) {
         numberGrid.appendChild(numBtn);
     }
 
+    // Create finalize button
     const finalizeBtn = document.createElement("button");
     finalizeBtn.innerText = "Finalize Board";
     finalizeBtn.onclick = () => finalizeBoard(boardId);
@@ -90,10 +98,12 @@ function createBoardElement(boardId) {
  */
 function selectNumber(boardId, num, button) {
     const board = boards.find(b => b.id === boardId);
+   
+    // Prevent selection if finalized
     if (board.finalized) return;
-
     const index = board.numbers.indexOf(num);
 
+    // Toggle number selection
     if (index === -1) {
         if (board.numbers.length < 6) {
             board.numbers.push(num);
@@ -104,6 +114,7 @@ function selectNumber(boardId, num, button) {
         button.classList.remove("selected");
     }
 
+    // Enable finalize button only when 6 numbers selected
     const finalizeBtn = document.getElementById(`finalize-${boardId}`);
     finalizeBtn.disabled = board.numbers.length !== 6;
 }
@@ -115,14 +126,17 @@ function selectNumber(boardId, num, button) {
 function finalizeBoard(boardId) {
     const board = boards.find(b => b.id === boardId);
     if (board.numbers.length === 6) {
+        // Lock the board
         board.finalized = true;
 
+        // Disable all number buttons
         const finalizeBtn = document.getElementById(`finalize-${boardId}`);
         finalizeBtn.disabled = true;
 
         const boardElement = document.getElementById(`board-${boardId}`);
         boardElement.querySelectorAll("button").forEach(btn => btn.onclick = null);
 
+        // If all boards finalized, enable draw button
         if (boards.every(b => b.finalized)) {
             document.getElementById("startDrawBtn").disabled = false;
         }
@@ -133,8 +147,8 @@ function finalizeBoard(boardId) {
  * Starts the lottery draw and displays the winning numbers.
  */
 function startDraw() {
+    // Generate 6 unique random numbers
     const winningNumbers = [];
-
     while (winningNumbers.length < 6) {
         const rand = Math.floor(Math.random() * 20) + 1;
         if (!winningNumbers.includes(rand)) {
@@ -142,6 +156,7 @@ function startDraw() {
         }
     }
 
+    // Display winning numbers
     document.getElementById("winningNumbers").innerHTML = `
         <h3>Winning Numbers: ${winningNumbers.join(", ")}</h3>
     `;
